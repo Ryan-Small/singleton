@@ -9,12 +9,33 @@ env:
     PROJECT_NAME: singleton
 
 jobs:
-    build-image:
+    infrastructure:
         runs-on: ubuntu-latest
+        outputs:
+            stack-exists: ${{ steps.check-stack.output.exists }}
         steps:
             -    name: Checkout Code
                  uses: actions/checkout@v3
 
-            -    name: Build the container
+            -    name: Configure AWS Credentials
+                 uses: aws-actions/configure-aws-credentials@v4
+                 with:
+                     role-to-assume: ${{ secrets.AWS_ROLE_ARN_GITHUB }}
+                     aws-region: ${{ secrets.AWS_REGION }}
+
+            -    name: Check if stack exists
+                 id: check-stack
                  run: |
-                       docker build -t ${{ env.PROJECT_NAME }} .
+                     if aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
+                     then
+                        echo "exists=true" >> "$GITHUB_OUTPUT"
+                     else
+                        echo "exists=false" >> "$GITHUB_OUTPUT"
+                     fi
+
+            -   name: Create stack if needed
+                if: steps.check-stack.outputs.exists != 'true'
+                run: |
+                    aws cloudformation create-stack \
+                      --stack-name ${{ env.PROJECT_NAME }} \
+                      --template-body: file://infrastructure/main.yaml \
