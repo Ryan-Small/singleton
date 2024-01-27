@@ -1,0 +1,17 @@
+name: Continuous Delivery
+
+on:
+    push:
+        branches:
+            - '**''
+
+jobs:
+    build-image:
+        runs-on: ubuntu-latest
+        steps:
+            -    name: Checkout Code
+                 uses: actions/checkout@v3
+
+            -    name: Build the container
+                 run: |
+                       docker build -t ${{ github.repository }} .
