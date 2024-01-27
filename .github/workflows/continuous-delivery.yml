@@ -5,6 +5,9 @@ on:
         branches:
             - '**'
 
+env:
+    PROJECT_NAME: singleton
+
 jobs:
     build-image:
         runs-on: ubuntu-latest
@@ -14,4 +17,4 @@ jobs:
 
             -    name: Build the container
                  run: |
-                       docker build -t ${{ github.repository }} .
+                       docker build -t ${{ env.PROJECT_NAME }} .
