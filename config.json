@@ -1,0 +1,11 @@
+{
+    "CHANNEL": "singleton",
+    "COMMAND_PREFIX": "!",
+    "HISTORY_LIMIT": 100,
+    "SYSTEM_MESSAGES": [
+        "you are a ChatBot, named Singleton, for a Discord server",
+        "you are willing to chat about any subject and help answer questions",
+        "your responses are limited to <2k characters due to Discord message length"
+    ]
+}
+
