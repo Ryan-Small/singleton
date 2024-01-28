@@ -14,7 +14,7 @@ Resources:
                 Statement:
                     -   Sid: AllowPushPull
                         Effect: 'Allow'
-                        Principal: !Sub "arn:aws:iam::533267346664:role/singleton-infrastructure"
+                        Principal: "arn:aws:iam::533267346664:role/singleton-infrastructure"
                         Action:
                             -   'ecr:BatchCheckLayerAvailability'
                             -   'ecr:BatchGetImage'
@@ -23,3 +23,5 @@ Resources:
                             -   'ecr:InitiateLayerUpload'
                             -   'ecr:PutImage'
                             -   'ecr:UploadLayerPart'
+
+
