@@ -29,7 +29,7 @@ jobs:
             -    name: Check if stack exists
                  id: check-stack
                  run: |
-                     if aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
+                     if ! aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
                      then
                         echo "exists=true" >> "$GITHUB_OUTPUT"
                         echo "The stack exists."
