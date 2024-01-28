@@ -26,21 +26,8 @@ jobs:
                      role-to-assume: ${{ secrets.AWS_ROLE_ARN_BUILDSYSTEM }}
                      aws-region: ${{ secrets.AWS_REGION }}
 
-            -    name: Check if stack exists
-                 id: check-stack
-                 run: |
-                     if ! aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
-                     then
-                        echo "exists=true" >> "$GITHUB_OUTPUT"
-                        echo "The stack exists."
-                     else
-                        echo "exists=false" >> "$GITHUB_OUTPUT"
-                        echo "The stack does not exist."
-                     fi
-
-            -   name: Create stack if needed
-                if: steps.check-stack.outputs.exists != 'true'
-                run: |
-                    aws cloudformation create-stack \
-                      --stack-name ${{ env.PROJECT_NAME }} \
-                      --template-body file://infrastructure/main.yaml
+            -   name: Deploy to AWS CloudFormation
+                uses: aws-actions/aws-cloudformation-github-deploy@v1
+                with:
+                    name: ${{ env.PROJECT_NAME }}
+                    template: infrastructure/main.yaml
