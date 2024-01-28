@@ -20,7 +20,6 @@ Resources:
                             -   'ecr:BatchGetImage'
                             -   'ecr:CompleteLayerUpload'
                             -   'ecr:GetDownloadUrlForLayer'
-                            -   'ecr:GetLifecyclePolicy'
                             -   'ecr:InitiateLayerUpload'
                             -   'ecr:PutImage'
                             -   'ecr:UploadLayerPart'
