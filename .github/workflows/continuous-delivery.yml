@@ -32,8 +32,10 @@ jobs:
                      if aws cloudformation describe-stacks --stack-name $STACK_NAME > /dev/null 2>&1
                      then
                         echo "exists=true" >> "$GITHUB_OUTPUT"
+                        echo "The stack exists."
                      else
                         echo "exists=false" >> "$GITHUB_OUTPUT"
+                        echo "The stack does not exist."
                      fi
 
             -   name: Create stack if needed
