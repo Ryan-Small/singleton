@@ -41,4 +41,4 @@ jobs:
                 run: |
                     aws cloudformation create-stack \
                       --stack-name ${{ env.PROJECT_NAME }} \
-                      --template-body: file://infrastructure/main.yaml \
+                      --template-body file://infrastructure/main.yaml \
