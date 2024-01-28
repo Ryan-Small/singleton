@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Creates the project's deployment infrastructure
+Resources:
+
+    #-------------------------------------------------------------------------------------------------------------------
+    # Elastic Container Registry
+    #-------------------------------------------------------------------------------------------------------------------
+    EcrRepository:
+        Type: 'AWS::ECR::Repository'
+        Properties:
+            RepositoryName: singleton
+            RepositoryPolicyText:
+                Version: '2012-10-17'
+                Statement:
+                    -   Sid: AllowPushPull
+                        Effect: 'Allow'
+                        Principal: !Sub "arn:aws:iam::533267346664:role/singleton-infrastructure
+                        Action:
+                            -   'ecr:BatchCheckLayerAvailability'
+                            -   'ecr:BatchGetImage'
+                            -   'ecr:CompleteLayerUpload'
+                            -   'ecr:GetDownloadUrlForLayer'
+                            -   'ecr:GetLifecyclePolicy'
+                            -   'ecr:InitiateLayerUpload'
+                            -   'ecr:PutImage'
+                            -   'ecr:UploadLayerPart'
