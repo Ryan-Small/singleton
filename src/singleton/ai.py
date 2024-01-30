@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class AI:
 
     def __init__(self):
-        llm = OpenAI(model_name='gpt-3.5-turbo-instruct')
+        llm = OpenAI()
         memory = ConversationSummaryBufferMemory(llm=llm)
         for msg in self._get_system_messages():
             memory.save_context({"input": f"It is critical to remember that {msg}."}, {"output": "acknowledged"})
