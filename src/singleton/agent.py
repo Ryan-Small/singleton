@@ -1,9 +1,7 @@
 import logging
-from typing import List
 
 import discord
 from discord.ext import commands
-
 
 logger = logging.getLogger(__name__)
 
@@ -28,12 +26,8 @@ class DiscordAgent:
             """Callback for when a message is sent."""
             logging.info(f'received: {message}')
             if self._should_respond(message):
-                # history = await self._fetch_channel_history(message.channel)
-                # messages = [self._normalize_message(msg) for msg in history]
-                # response = await self.ai.handle_message(messages[::-1])
                 response = self.ai.handle_message(message.content)
-                if response:
-                    await message.channel.send(response)
+                await message.channel.send(response)
 
         self.agent.add_listener(on_ready, 'on_ready')
         self.agent.add_listener(on_message, 'on_message')
@@ -67,20 +61,3 @@ class DiscordAgent:
             return True
 
         return False
-
-    async def _fetch_channel_history(self, channel: discord.TextChannel) -> List[discord.Message]:
-        return [message async for message in channel.history(limit=self.history_limit)]
-
-    @staticmethod
-    def _normalize_message(message: discord.Message) -> dict:
-        """Convert a Discord message to a JSON-serializable format, or return the message if it's already a string."""
-        if isinstance(message.channel, discord.DMChannel):
-            channel_name = 'Direct Message'
-        else:
-            channel_name = getattr(message.channel, 'name', 'unknown channel')
-        author_name = getattr(message.author, 'name', 'unknown author')
-        content = message.content if message.content else 'unknown content'
-        return {
-            "role": 'assistant' if author_name == 'Singleton' else 'user',
-            "content": f'In {channel_name}, {author_name} said: {content}'
-        }
