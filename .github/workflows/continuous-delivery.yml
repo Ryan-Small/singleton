@@ -31,3 +31,4 @@ jobs:
                 with:
                     name: ${{ env.PROJECT_NAME }}
                     template: infrastructure/main.yaml
+                    no-fail-on-empty-changeset: "1"
