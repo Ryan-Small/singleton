@@ -7,13 +7,14 @@ from langchain.memory import ConversationSummaryBufferMemory
 from langchain.schema import HumanMessage
 from langchain_openai import OpenAI
 
+
 logger = logging.getLogger(__name__)
 
 
 class AI:
 
-    def __init__(self):
-        llm = OpenAI(model_name='gpt-3.5-turbo-instruct')
+    def __init__(self, openai_token):
+        llm = OpenAI(openai_api_key=openai_token, model_name='gpt-3.5-turbo-instruct')
         memory = ConversationSummaryBufferMemory(llm=llm)
         for msg in self._get_system_messages():
             memory.save_context({"input": f"It is critical to remember that {msg}."}, {"output": "acknowledged"})
