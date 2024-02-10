@@ -1,0 +1,192 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "Configures the base infrastructure for hosting the project."
+#-----------------------------------------------------------------------------------------------------------------------
+# This CloudFormation templates creates the base infrastructure needed to host a containerized application using ECS.
+#-----------------------------------------------------------------------------------------------------------------------
+
+Parameters:
+
+    ProjectIdentifier:
+        Description: "Identifier for the project. Used to prefix and name some resources."
+        Type: "String"
+        MinLength: "1"
+        MaxLength: "64"
+        AllowedPattern: "[a-zA-Z][a-zA-Z0-9-]*"
+        ConstraintDescription: "Must start with a letter and consist only of alphanumeric characters and hyphens."
+
+    EcrPrincipal:
+        Description: "Principal allowed to push and pull to the ECR."
+        Type: "String"
+
+    SecretsManagerArn:
+        Description: "ARN of the SecretsManager that contains the keys the task definition will need."
+        Type: "String"
+        AllowedPattern: '^arn:aws[a-zA-Z-]*:[a-zA-Z0-9-]+:[a-zA-Z0-9-]*:[0-9]{12}:[a-zA-Z0-9-/:\._]+$'
+        ConstraintDescription: "Must be a valid AWS ARN."
+
+    Region:
+        Description: "AWS Region in which to deploy the resources."
+        Type: "String"
+        Default: "us-east-1"
+
+
+Resources:
+
+    #-------------------------------------------------------------------------------------------------------------------
+    # Networking
+    #
+    # The Networking section creates a VPC, two public subnets on different availability zones for redundancy, and
+    # configures the necessary routing for internet access.
+    #
+    # This setup opts for public subnets owing to the additional cost associated with NAT gateways required for private
+    # subnet internet access. Note that using public subnets potentially exposes the infrastructure to security risks.
+    # To help mitigate these risks, the security group will deny all inbound traffic - the default behavior.
+    #-------------------------------------------------------------------------------------------------------------------
+    VPC:
+        Type: "AWS::EC2::VPC"
+        Properties:
+            CidrBlock: "10.0.0.0/16"
+
+    InternetGateway:
+        Type: "AWS::EC2::InternetGateway"
+
+    VpcGatewayAttachment:
+        Type: "AWS::EC2::VPCGatewayAttachment"
+        Properties:
+            VpcId: !Ref "VPC"
+            InternetGatewayId: !Ref "InternetGateway"
+
+    RouteTable:
+        Type: "AWS::EC2::RouteTable"
+        Properties:
+            VpcId: !Ref "VPC"
+
+    Route:
+        Type: "AWS::EC2::Route"
+        DependsOn: "VpcGatewayAttachment"
+        Properties:
+            GatewayId: !Ref "InternetGateway"
+            RouteTableId: !Ref "RouteTable"
+            DestinationCidrBlock: "0.0.0.0/0"
+
+    PublicSubnet1:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            VpcId: !Ref "VPC"
+            CidrBlock: "10.0.1.0/28"
+            AvailabilityZone: !Sub "${Region}a"
+
+    SubnetRouteTableAssociation1:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            SubnetId: !Ref "PublicSubnet1"
+            RouteTableId: !Ref "RouteTable"
+
+    PublicSubnet2:
+        Type: "AWS::EC2::Subnet"
+        Properties:
+            VpcId: !Ref "VPC"
+            CidrBlock: "10.0.2.0/28"
+            AvailabilityZone: !Sub "${Region}b"
+
+    SubnetRouteTableAssociation2:
+        Type: "AWS::EC2::SubnetRouteTableAssociation"
+        Properties:
+            SubnetId: !Ref "PublicSubnet2"
+            RouteTableId: !Ref "RouteTable"
+
+    EcsSecurityGroup:
+        Type: "AWS::EC2::SecurityGroup"
+        Properties:
+            GroupDescription: "Security group for the ECS task of the project"
+            VpcId: !Ref "VPC"
+            SecurityGroupIngress: []
+            SecurityGroupEgress:
+                -   CidrIp: "0.0.0.0/0"
+                    IpProtocol: "-1"
+
+
+    #-------------------------------------------------------------------------------------------------------------------
+    # Elastic Container Service
+    #
+    # The ECS section creates an ECR, IAM roles and an ECS cluster. Though, it does not create the ECS Service or Task
+    # Definition and instead leaves that up to the deployment process.
+    #-------------------------------------------------------------------------------------------------------------------
+    ECR:
+        Type: "AWS::ECR::Repository"
+        Properties:
+            RepositoryName: !Ref "ProjectIdentifier"
+            RepositoryPolicyText:
+                Version: "2012-10-17"
+                Statement:
+                    -   Sid: "AllowPushPull"
+                        Effect: "Allow"
+                        Principal:
+                            AWS:
+                                -   !Ref "EcrPrincipal"
+                        Action:
+                            -   "ecr:BatchCheckLayerAvailability"
+                            -   "ecr:BatchGetImage"
+                            -   "ecr:CompleteLayerUpload"
+                            -   "ecr:GetDownloadUrlForLayer"
+                            -   "ecr:InitiateLayerUpload"
+                            -   "ecr:PutImage"
+                            -   "ecr:UploadLayerPart"
+
+    LogGroup:
+        Type: "AWS::Logs::LogGroup"
+        Properties:
+            LogGroupName: !Sub "${ProjectIdentifier}"
+
+    TaskRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            RoleName: !Sub "${ProjectIdentifier}-ecs-task-role"
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    -   Effect: "Allow"
+                        Principal:
+                            Service:
+                                -   "ecs-tasks.amazonaws.com"
+                        Action:
+                            -   "sts:AssumeRole"
+            ManagedPolicyArns:
+                -   "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+
+    TaskExecutionRole:
+        Type: "AWS::IAM::Role"
+        Properties:
+            RoleName: !Sub "${ProjectIdentifier}-ecs-task-execution-role"
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    -   Effect: "Allow"
+                        Principal:
+                            Service:
+                              -   "ecs-tasks.amazonaws.com"
+                        Action: "sts:AssumeRole"
+            ManagedPolicyArns:
+                -   "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+            Policies:
+                -   PolicyName: !Sub "${ProjectIdentifier}ReadSecrets"
+                    PolicyDocument:
+                        Version: "2012-10-17"
+                        Statement:
+                            -   Effect: "Allow"
+                                Action:
+                                    -   "secretsmanager:GetSecretValue"
+                                Resource: !Sub "${SecretsManagerArn}*"
+                -   PolicyName: "AllowCreateLogGroup"
+                    PolicyDocument:
+                        Version: "2012-10-17"
+                        Statement:
+                            -   Effect: "Allow"
+                                Action:
+                                    -   "logs:CreateLogGroup"
+                                Resource: "*"
+
+    EcsCluster:
+        Type: "AWS::ECS::Cluster"
+        Properties:
+            ClusterName: !Ref "ProjectIdentifier"
