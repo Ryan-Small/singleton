@@ -49,7 +49,7 @@ jobs:
 
             -   name: Push Docker Image
                 run: |
-                    docker push ${{ steps.build-image.outputs.image_name }}
+                    docker push ${{ steps.generate-image-name.outputs.image_name }}
 
             -   name: Output image
                 run: echo ${{ steps.build-image.outputs.image }}
