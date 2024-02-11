@@ -68,6 +68,9 @@ jobs:
                 id: login-ecr
                 uses: aws-actions/amazon-ecr-login@v2
 
+            -   name: Checkout Code
+                uses: actions/checkout@v4
+
             -   name: Render ECS Task Definition
                 id: render-ecs-task-definition
                 env:
