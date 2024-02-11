@@ -40,9 +40,11 @@ jobs:
                     IMAGE_REPOSITORY: ${{ env.PROJECT_NAME }}
                 run: |
                     IMAGE_TAG=${{ github.ref_name }}-${{ github.sha }}  # TAGs cannot contain slashes.
+                    echo $IMAGE_TAG
                     IMAGE_TAG=${IMAGE_TAG//\//-}  # e.g. release/v0.0.0-<sha> --> release-v0.0.0-<sha>
-                    echo "image_name=$IMAGE_REGISTRY/$IMAGE_REPOSITORY/$IMAGE_TAG" >> "$GITHUB_OUTPUT"
-                    echo "IMAGE_NAME=${image_name}"
+                    echo $IMAGE_TAG
+                    echo "image_name=$IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG" >> "$GITHUB_OUTPUT"
+                    echo "IMAGE_NAME=$image_name"
 
             -   name: Build Docker Image
                 run: |
