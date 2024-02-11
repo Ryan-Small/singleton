@@ -9,7 +9,6 @@ on:
 
 env:
     PROJECT_NAME: singleton
-    ECS_TASK_DEFINITION: ecs-task-definition.json
 
 permissions:
     id-token: write
@@ -52,7 +51,7 @@ jobs:
             -   name: Push Docker Image
                 run: |
                     docker push ${{ steps.generate-image-name.outputs.image_name }}
-                    echo "- ${{ steps.generate-image-name.outputs.IMAGE_NAME }} has been pushed." >> $GITHUB_STEP_SUMMARY
+                    echo "- Uploaded ${{ steps.generate-image-name.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
 
     delivery:
         runs-on: ubuntu-latest
@@ -69,6 +68,22 @@ jobs:
                 id: login-ecr
                 uses: aws-actions/amazon-ecr-login@v2
 
-            -   name: Debug
+            -   name: Render ECS Task Definition
+                id: render-ecs-task-definition
+                env:
+                    AWS_REGION: ${{ secrets.AWS_REGION }}
+                    AWS_ROLE_TASK_EXECUTION_ARN: ${{ secrets.AWS_ROLE_TASK_EXECUTION_ARN }}
+                    AWS_ROLE_TASK_ARN: ${{ secrets.AWS_ROLE_TASK_ARN }}
+                    AWS_SECRETS_MANAGER_ARN: ${{ secrets.AWS_SECRETS_MANAGER_ARN }}
+                    IMAGE_NAME: ${{ needs.integration.outputs.IMAGE_NAME }}
                 run: |
-                    echo ${{ needs.integration.outputs.IMAGE_NAME }}
+                    envsubst < ecs-task-definition.yaml > rendered-ecs-task-definition.yaml
+                    echo "task_definition=rendered_ecs_task_definition.yaml" >> "$GITHUB_OUTPUT"
+
+            -   name: Deploy ECS Task Definition
+                uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+                with:
+                    task-definition: ${{ steps.render-ecs-task-definition.outputs.task_definition }}
+                    cluster: ${{ env.PROJECT_NAME }}
+                    service: ${{ env.PROJECT_NAME }}
+                    wait-for-service-stability: true
