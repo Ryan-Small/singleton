@@ -17,8 +17,7 @@ jobs:
     integration:
         runs-on: ubuntu-latest
         outputs:
-            IMAGE_NAME: ${{ steps.generate-image-name.outputs.image_name }}
-            DEBUGGING: ${{ steps.generate-image-name.outputs.debugging }}
+            IMAGE_TAG: ${{ steps.generate-image-name.outputs.image_tag }}
         steps:
             -   name: Configure AWS Credentials
                 uses: aws-actions/configure-aws-credentials@v4
@@ -33,35 +32,37 @@ jobs:
             -   name: Checkout Code
                 uses: actions/checkout@v4
 
-            -   name: Generate Image Name
-                id: generate-image-name
-                env:
-                    IMAGE_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-                    IMAGE_REPOSITORY: ${{ env.PROJECT_NAME }}
+            -   name: Generate Image Tag
+                id: generate-image-tag
                 run: |
                     image_tag=${{ github.ref_name }}-${{ github.sha }}  # TAGs cannot contain slashes.
                     image_tag=${image_tag//\//-}  # e.g. release/v0.0.0-<sha> --> release-v0.0.0-<sha>
-                    image_name=$IMAGE_REGISTRY/$IMAGE_REPOSITORY:$image_tag
-                    echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
-                    echo "image_name=$image_name"
-                    echo "debugging=testtest" >> "$GITHUB_OUTPUT"
+                    echo "image_tag=$image_tag" >> "$GITHUB_OUTPUT"
+                    echo "image_tag=$image_tag"
 
-#            -   name: Build Docker Image
-#                run: |
-#                    docker build -t ${{ steps.generate-image-name.outputs.image_name }} .
-#
-#            -   name: Push Docker Image
-#                run: |
-#                    docker push ${{ steps.generate-image-name.outputs.image_name }}
-#                    echo "- Uploaded ${{ steps.generate-image-name.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
+            -   name: Build Docker Image
+                env:
+                    IMAGE_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                    IMAGE_REPOSITORY: ${{ env.PROJECT_NAME }}
+                    IMAGE_TAG: ${{ steps.generate-image-tag.outputs.image_tag }}
+                run: |
+                    docker build -t $IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG .
+
+            -   name: Push Docker Image
+                env:
+                    IMAGE_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+                    IMAGE_REPOSITORY: ${{ env.PROJECT_NAME }}
+                    IMAGE_TAG: ${{ steps.generate-image-tag.outputs.image_tag }}
+                run: |
+                    docker push $IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG
+                    echo "- Uploaded $IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG" >> $GITHUB_STEP_SUMMARY
     test:
         runs-on: ubuntu-latest
         needs: integration
         steps:
             -   name: Testing
                 run: |
-                    echo ${{ needs.integration.outputs.DEBUGGING }}
-                    echo ${{ needs.integration.outputs.IMAGE_NAME }}
+                    echo ${{ needs.integration.outputs.IMAGE_TAG }}
 
     delivery:
         runs-on: ubuntu-latest
