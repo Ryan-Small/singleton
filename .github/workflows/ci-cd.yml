@@ -17,7 +17,7 @@ jobs:
     integration:
         runs-on: ubuntu-latest
         outputs:
-            IMAGE_NAME: ${{ steps.generate-image-name.output.image_name }}
+            IMAGE_NAME: ${{ steps.generate-image-name.outputs.image_name }}
         steps:
             -   name: Configure AWS Credentials
                 uses: aws-actions/configure-aws-credentials@v4
@@ -41,7 +41,7 @@ jobs:
                     image_tag=${{ github.ref_name }}-${{ github.sha }}  # TAGs cannot contain slashes.
                     image_tag=${image_tag//\//-}  # e.g. release/v0.0.0-<sha> --> release-v0.0.0-<sha>
                     image_name=$IMAGE_REGISTRY/$IMAGE_REPOSITORY:$image_tag
-                    echo "image_name=testingtesting" >> "$GITHUB_OUTPUT"
+                    echo "image_name=$image_name" >> "$GITHUB_OUTPUT"
                     echo "image_name=$image_name"
 
             -   name: Build Docker Image
