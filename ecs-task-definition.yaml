@@ -6,7 +6,7 @@ requiresCompatibilities:
     -   "FARGATE"
 containerDefinitions:
     -   name: "backend"
-        image: "$IMAGE_NAME"
+        image: "$IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG"
         cpu: "100"
         memory: "256"
         essential: true
