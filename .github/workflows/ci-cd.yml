@@ -5,7 +5,7 @@ on:
         branches:
             -   '*'
         tags:
-            -   release/v[0-9]+.[0-9]+.[0-9]
+            -   release/v[0-9]+.[0-9]+.[0-9]+
 
 env:
     PROJECT_NAME: singleton
@@ -80,6 +80,7 @@ jobs:
                     AWS_SECRETS_MANAGER_ARN: ${{ secrets.AWS_SECRETS_MANAGER_ARN }}
                     IMAGE_NAME: ${{ needs.integration.outputs.IMAGE_NAME }}
                 run: |
+                    echo ${{ needs.integration.outputs.IMAGE_NAME }}
                     envsubst < ecs-task-definition.yaml > rendered-ecs-task-definition.yaml
                     echo "task_definition=rendered-ecs-task-definition.yaml" >> "$GITHUB_OUTPUT"
 
