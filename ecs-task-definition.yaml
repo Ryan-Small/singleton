@@ -9,15 +9,15 @@ containerDefinitions:
         image: "$IMAGE_NAME"
         cpu: "100"
         memory: "256"
-        essential: "true"
-        LogConfiguration:
-            LogDriver: "awslogs"
-            Options:
+        essential: true
+        logConfiguration:
+            logDriver: "awslogs"
+            options:
                 awslogs-region: "$AWS_REGION"
                 awslogs-group: "singleton"
                 awslogs-stream-prefix: "agent"
-        Secrets:
-            -   Name: "DISCORD_TOKEN"
-                ValueFrom: "$AWS_SECRETS_MANAGER_ARN:DISCORD_TOKEN::"
-            -   Name: "OPENAI_TOKEN"
-                ValueFrom: "$AWS_SECRETS_MANAGER_ARN:OPENAI_TOKEN::"
+        secrets:
+            -   name: "DISCORD_TOKEN"
+                valueFrom: "$AWS_SECRETS_MANAGER_ARN:DISCORD_TOKEN::"
+            -   name: "OPENAI_TOKEN"
+                valueFrom: "$AWS_SECRETS_MANAGER_ARN:OPENAI_TOKEN::"
