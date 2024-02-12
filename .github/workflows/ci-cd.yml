@@ -17,7 +17,7 @@ jobs:
     integration:
         runs-on: ubuntu-latest
         outputs:
-            IMAGE_TAG: ${{ steps.generate-image-name.outputs.image_tag }}
+            IMAGE_TAG: ${{ steps.generate-image-tag.outputs.image_tag }}
         steps:
             -   name: Configure AWS Credentials
                 uses: aws-actions/configure-aws-credentials@v4
