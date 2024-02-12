@@ -81,7 +81,7 @@ jobs:
                     IMAGE_NAME: ${{ needs.integration.outputs.IMAGE_NAME }}
                 run: |
                     envsubst < ecs-task-definition.yaml > rendered-ecs-task-definition.yaml
-                    echo "task_definition=rendered_ecs_task_definition.yaml" >> "$GITHUB_OUTPUT"
+                    echo "task_definition=rendered-ecs-task-definition.yaml" >> "$GITHUB_OUTPUT"
 
             -   name: Deploy ECS Task Definition
                 uses: aws-actions/amazon-ecs-deploy-task-definition@v1
