@@ -2,13 +2,13 @@ family: "singleton"
 executionRoleArn: "$AWS_ROLE_TASK_EXECUTION_ARN"
 taskRoleArn: "$AWS_ROLE_TASK_ARN"
 networkMode: 'awsvpc'
+cpu: "100"
+memory: "256"
 requiresCompatibilities:
     -   "FARGATE"
 containerDefinitions:
     -   name: "backend"
         image: "$IMAGE_REGISTRY/$IMAGE_REPOSITORY:$IMAGE_TAG"
-        cpu: "100"
-        memory: "256"
         essential: true
         logConfiguration:
             logDriver: "awslogs"
