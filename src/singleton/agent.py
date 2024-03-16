@@ -26,13 +26,14 @@ class DiscordAgent:
 
         async def on_message(message: discord.Message):
             """Callback for when a message is sent."""
-            logging.info(f'received: {message}')
+            logging.info(f'received: {message.content}')
             if self._should_respond(message):
                 # history = await self._fetch_channel_history(message.channel)
                 # messages = [self._normalize_message(msg) for msg in history]
                 # response = await self.ai.handle_message(messages[::-1])
                 response = self.ai.handle_message(message.content)
                 if response:
+                    logging.info(f'responding: {response}')
                     await message.channel.send(response)
 
         self.agent.add_listener(on_ready, 'on_ready')
