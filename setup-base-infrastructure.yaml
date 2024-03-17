@@ -204,6 +204,7 @@ Resources:
             LaunchType: "FARGATE"
             NetworkConfiguration:
                 AwsvpcConfiguration:
+                    AssignPublicIp: "ENABLED"
                     SecurityGroups:
                         -   !Ref "EcsSecurityGroup"
                     Subnets:
