@@ -18,7 +18,8 @@ jobs:
         runs-on: ubuntu-latest
         outputs:
             # It would be nice to output the entire image name, but the amazon-ecr-login tasks masks the repository.
-            # This masking prevents us from outputting the entire name to another job.
+            # This masking prevents us from outputting the entire name to another job, so other jobs will need to fetch
+            # the registry and repository.
             IMAGE_TAG: ${{ steps.generate-image-tag.outputs.image_tag }}
         steps:
             -   name: Configure AWS Credentials
