@@ -172,7 +172,7 @@ Resources:
                 -   "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
             Policies:
                 # Allows for the retrieval of secrets as defined by the task definitions.
-                -   PolicyName: !Sub "${ProjectIdentifier}ReadSecrets"
+                -   PolicyName: !Sub "${ProjectIdentifier}-ReadSecrets"
                     PolicyDocument:
                         Version: "2012-10-17"
                         Statement:
